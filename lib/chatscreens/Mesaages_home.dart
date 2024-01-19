@@ -1,11 +1,9 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebasestudy/chatscreens/messages_item.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 final firebaseAuthInstance = FirebaseAuth.instance;
 final firebaseStorageInstance = FirebaseStorage.instance;
@@ -13,7 +11,7 @@ final firebaseFireStore = FirebaseFirestore.instance;
 final fcm = FirebaseMessaging.instance;
 
 class MessagesHomePage extends StatefulWidget {
-  const MessagesHomePage({super.key});
+  const MessagesHomePage({Key? key}) : super(key: key);
 
   @override
   State<MessagesHomePage> createState() => _HomeState();
@@ -23,137 +21,70 @@ class _HomeState extends State<MessagesHomePage> {
   final _nameController = TextEditingController();
   final userGlobal = firebaseAuthInstance.currentUser;
 
-  File? _pickedFile;
-  String _imageUrl = '';
-  String mesaj = 'defaultMesage';
+  Map<String, String> usersData = {};
 
   @override
   void initState() {
-    requestNotificationPermission();
-    _getMessage();
     super.initState();
+    // Kullanıcı verilerini yükle
+    loadUsersData();
   }
 
-  void requestNotificationPermission() async {
-    NotificationSettings notificationSetting = await fcm.requestPermission();
+  Future<void> loadUsersData() async {
+    try {
+      var usersSnapshot = await firebaseFireStore.collection("users").get();
+      for (var userDoc in usersSnapshot.docs) {
+        var email = userDoc['email'];
 
-    String? token = await fcm.getToken();
-
-    print("TOKENNNNNNN");
-    print(token);
+        // Kullanıcı belgesinde 'username' alanı var mı kontrol et
+        if (userDoc.data()!.containsKey('username')) {
+          var username = userDoc['username'];
+          usersData[email] = username;
+          /*       print("Priasdasdasdas");
+          print(username);
+          print(usersData); */
+        } else {
+          usersData[email] = 'Bilinmeyen Username';
+        }
+      }
+      setState(() {});
+    } catch (e) {
+      print('Hata: $e');
+    }
   }
 
-  void _getMessage() async {
+  void sendMesaage() {
     try {
       final user = firebaseAuthInstance.currentUser;
-      if (user != null) {
-        final document = firebaseFireStore.collection("messages").doc(user.uid);
-        final documentSnapshot = await document.get();
 
-        mesaj = documentSnapshot.get("mesaj");
-      }
-    } catch (e) {
-      print("Hata oluştu: $e");
-    }
-  }
-
-  void _getUserImage(String userId) async {
-    try {
-      final document = firebaseFireStore.collection("users").doc(userId);
-      final documentSnapshot = await document.get();
-
-      if (documentSnapshot.exists) {
-        setState(() {
-          // Eğer kullanıcının imageUrl alanı varsa onu kullan, yoksa boş bir değer kullan
-          _imageUrl = documentSnapshot.get("imageUrl") ?? "";
-        });
-      }
-    } catch (e) {
-      print("Hata oluştu: $e");
-    }
-  }
-
-  void _pickImage() async {
-    final image = await ImagePicker()
-        .pickImage(source: ImageSource.camera, imageQuality: 50, maxWidth: 150);
-
-    if (image != null) {
-      setState(() {
-        _pickedFile = File(image.path);
+      firebaseFireStore.collection("messages").add({
+        'email': user!.email,
+        'mesaj': _nameController.text,
+        'timestamp': FieldValue.serverTimestamp(),
       });
+    } catch (e) {
+      print(e);
     }
-  }
-
-  void _upload() async {
-    final user = firebaseAuthInstance.currentUser;
-    final storageRef =
-        firebaseStorageInstance.ref().child("images").child("${user!.uid}.jpg");
-
-    await storageRef.putFile(_pickedFile!);
-
-    final url = await storageRef.getDownloadURL();
-
-    final document = firebaseFireStore.collection("users").doc(user!.uid);
-
-    await document.update({
-      'imageUrl': url
-    }); // document.update => verilen değeri ilgili dökümanda günceller!
   }
 
   @override
   Widget build(BuildContext context) {
+    print("UserGlobal");
+    print(userGlobal!.uid);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Firebase Application"),
         actions: [
           IconButton(
-              onPressed: () {
-                firebaseAuthInstance.signOut();
-              },
-              icon: const Icon(Icons.logout)),
+            onPressed: () {
+              firebaseAuthInstance.signOut();
+            },
+            icon: const Icon(Icons.logout),
+          ),
           IconButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Center(
-                      child: Column(children: [
-                        const SizedBox(height: 15),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_imageUrl.isNotEmpty && _pickedFile == null)
-                              CircleAvatar(
-                                radius: 40,
-                                backgroundColor: Colors.grey,
-                                foregroundImage: NetworkImage(_imageUrl),
-                              ),
-                            if (_pickedFile != null)
-                              CircleAvatar(
-                                radius: 40,
-                                backgroundColor: Colors.grey,
-                                foregroundImage: FileImage(_pickedFile!),
-                              ),
-                            TextButton(
-                                onPressed: () {
-                                  _pickImage();
-                                },
-                                child: const Text("Resim Seç")),
-                            if (_pickedFile != null)
-                              ElevatedButton(
-                                  onPressed: () {
-                                    _upload();
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text("Yükle"))
-                          ],
-                        )
-                      ]),
-                    );
-                  },
-                );
-              },
-              icon: const Icon(Icons.settings))
+            onPressed: () {},
+            icon: const Icon(Icons.settings),
+          )
         ],
       ),
       body: Column(
@@ -161,46 +92,39 @@ class _HomeState extends State<MessagesHomePage> {
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: firebaseFireStore
-                  .collection('messages')
+                  .collection("messages")
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Hata: ${snapshot.error}');
                 } else {
-                  var mesajlar = snapshot.data!.docs.reversed;
+                  var messages = snapshot.data!.docs;
+
+                  List<Widget> messageWidgets = [];
+                  for (var message in messages) {
+                    final messageText = message['mesaj'];
+                    final messageSender = message['email'];
+
+                    var usernames =
+                        usersData[messageSender] ?? 'Bilinmeyen Username';
+
+                    final messageWidget = MessageWidget(
+                      sender: usernames,
+                      text: messageText,
+                      isMe: firebaseAuthInstance.currentUser != null &&
+                          firebaseAuthInstance.currentUser!.email ==
+                              messageSender,
+                    );
+
+                    messageWidgets.add(messageWidget);
+                  }
+
                   return ListView(
-                    padding: const EdgeInsets.all(8),
-                    children: mesajlar.map((doc) {
-                      var mesaj = doc['mesaj'];
-                      var kullaniciId = doc['email'];
-                      _getUserImage(kullaniciId);
-
-                      var myMessage = kullaniciId == userGlobal!.email;
-
-                      var alignment = myMessage
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft;
-
-                      return Container(
-                        alignment: alignment,
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                                radius: 25,
-                                backgroundColor: Colors.grey,
-                                foregroundImage: _imageUrl != null
-                                    ? NetworkImage(_imageUrl)
-                                    : null),
-                            Text(kullaniciId.toString()),
-                            Text(
-                              mesaj,
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                    reverse: true,
+                    children: messageWidgets,
                   );
                 }
               },
@@ -216,29 +140,13 @@ class _HomeState extends State<MessagesHomePage> {
                 ),
               ),
               ElevatedButton(
-                onPressed: () async {
-                  print("Gönderr Tıklandıı");
-
-                  try {
-                    final user = firebaseAuthInstance.currentUser;
-
-                    firebaseFireStore
-                        .collection("messages")
-                        .doc(user!.uid)
-                        .set({
-                      'email': user.email,
-                      'mesaj': _nameController.text,
-                      'timestamp': FieldValue.serverTimestamp(),
-                    });
-                  } catch (e) {
-                    print("Hata");
-                    print(e);
-                  }
+                onPressed: () {
+                  sendMesaage();
                 },
                 child: Text("Gönder"),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
