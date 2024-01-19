@@ -114,6 +114,7 @@ class _HomeState extends State<MessagesHomePage> {
                     final messageWidget = MessageWidget(
                       sender: usernames,
                       text: messageText,
+                      imageUrl: "null",
                       isMe: firebaseAuthInstance.currentUser != null &&
                           firebaseAuthInstance.currentUser!.email ==
                               messageSender,

@@ -3,9 +3,14 @@ import 'package:flutter/material.dart';
 class MessageWidget extends StatelessWidget {
   final String sender;
   final String text;
+  final String imageUrl;
   final bool isMe;
 
-  MessageWidget({required this.sender, required this.text, required this.isMe});
+  MessageWidget(
+      {required this.sender,
+      required this.text,
+      required this.imageUrl,
+      required this.isMe});
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +20,11 @@ class MessageWidget extends StatelessWidget {
         crossAxisAlignment:
             isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
+          CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.grey,
+            foregroundImage: NetworkImage(imageUrl),
+          ),
           Text(
             sender,
             style: TextStyle(
