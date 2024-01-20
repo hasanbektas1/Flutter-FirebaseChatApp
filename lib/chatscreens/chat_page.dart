@@ -287,6 +287,7 @@ class _HomeState extends State<ChatPage> {
               ElevatedButton(
                 onPressed: () {
                   sendMesaage();
+                  _nameController.clear();
                 },
                 child: Text("Gönder"),
               ),
