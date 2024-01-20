@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebasestudy/chatscreens/Mesaages_home_calisma.dart';
-import 'package:firebasestudy/chatscreens/Mesaages_login.dart';
+import 'package:firebasestudy/chatscreens/chat_page.dart';
+import 'package:firebasestudy/chatscreens/chat_login_page.dart';
 import 'package:firebasestudy/firebase_options.dart';
 import 'package:flutter/material.dart';
 
@@ -16,9 +16,9 @@ void main() async {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return MessagesHomePageCalisma();
+            return ChatPage();
           }
-          return MessageLoginPage();
+          return ChatLoginPage();
         }),
   ));
 }

@@ -1,23 +1,23 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebasestudy/screens/login_page_animate.dart';
+import 'package:firebasestudy/chatscreens/chat_page.dart';
 import 'package:flutter/material.dart';
 
 final firebaseFirestore = FirebaseFirestore.instance;
 final firebaseStoreinstance = FirebaseFirestore.instance;
 
-class SignInAnimate extends StatefulWidget {
-  const SignInAnimate({Key? key}) : super(key: key);
+class ChatSigninPage extends StatefulWidget {
+  const ChatSigninPage({Key? key}) : super(key: key);
 
   @override
   _SignOutAnimateState createState() => _SignOutAnimateState();
 }
 
-class _SignOutAnimateState extends State<SignInAnimate> {
+class _SignOutAnimateState extends State<ChatSigninPage> {
   late FirebaseAuth auth;
 
-  late String userEmail, userPassword;
+  late String userEmail, userPassword, userName;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -111,6 +111,31 @@ class _SignOutAnimateState extends State<SignInAnimate> {
                                                     color:
                                                         Colors.grey.shade200))),
                                         child: TextFormField(
+                                          keyboardType: TextInputType.name,
+                                          validator: (value) {
+                                            if (value!.isEmpty) {
+                                              return "İsim";
+                                            }
+                                            return null;
+                                          },
+                                          onSaved: (newValue) {
+                                            userName = newValue!;
+                                          },
+                                          decoration: const InputDecoration(
+                                              hintText: "İsim",
+                                              hintStyle:
+                                                  TextStyle(color: Colors.grey),
+                                              border: InputBorder.none),
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                            border: Border(
+                                                bottom: BorderSide(
+                                                    color:
+                                                        Colors.grey.shade200))),
+                                        child: TextFormField(
                                           keyboardType:
                                               TextInputType.emailAddress,
                                           validator: (value) {
@@ -191,8 +216,6 @@ class _SignOutAnimateState extends State<SignInAnimate> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(50),
                                 ),
-                                // decoration: BoxDecoration(
-                                // ),
                                 child: const Center(
                                   child: Text(
                                     "Sign in",
@@ -222,20 +245,19 @@ class _SignOutAnimateState extends State<SignInAnimate> {
     try {
       var _userCredential = await auth.createUserWithEmailAndPassword(
           email: userEmail, password: userPassword);
-      print("pasdaasdasd ${_userCredential.user!.uid}");
 
       firebaseFirestore
           .collection("users")
           .doc(_userCredential.user!.uid)
-          .set({"email": userEmail});
+          .set({"email": userEmail, 'username': userName});
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (ctx) => ChatPage()));
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("KAyıt başarılı giriş yapınız"),
+          content: Text("Kayıt başarılı giriş yapınız"),
         ),
       );
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (ctx) => LoginPageAnimate()));
     } catch (e) {
       print("catch e : $e");
       ScaffoldMessenger.of(context).showSnackBar(

@@ -13,14 +13,14 @@ final firebaseStorageInstance = FirebaseStorage.instance;
 final firebaseFireStore = FirebaseFirestore.instance;
 final fcm = FirebaseMessaging.instance;
 
-class MessagesHomePageCalisma extends StatefulWidget {
-  const MessagesHomePageCalisma({Key? key}) : super(key: key);
+class ChatPage extends StatefulWidget {
+  const ChatPage({Key? key}) : super(key: key);
 
   @override
-  State<MessagesHomePageCalisma> createState() => _HomeState();
+  State<ChatPage> createState() => _HomeState();
 }
 
-class _HomeState extends State<MessagesHomePageCalisma> {
+class _HomeState extends State<ChatPage> {
   final _nameController = TextEditingController();
   final userGlobal = firebaseAuthInstance.currentUser;
 
@@ -48,13 +48,9 @@ class _HomeState extends State<MessagesHomePageCalisma> {
       for (var userDoc in usersSnapshot.docs) {
         var imageUrlGet = userDoc['email'];
 
-        // Kullanıcı belgesinde 'username' alanı var mı kontrol et
         if (userDoc.data()!.containsKey('imageUrl')) {
           var imageName = userDoc['imageUrl'];
           usersDataImage[imageUrlGet] = imageName;
-          /*       print("Priasdasdasdas");
-          print(username);
-          print(usersData); */
         } else {
           usersDataImage[imageUrlGet] = 'Bilinmeyen Username';
         }
@@ -63,22 +59,6 @@ class _HomeState extends State<MessagesHomePageCalisma> {
     } catch (e) {
       print('Hata: $e');
     }
-/*     final user = firebaseAuthInstance.currentUser;
-    final document = firebaseFireStore.collection("users").doc(user!.uid);
-    final documentSnapshot =
-        await document.get(); // document.get => dökümanın okunmasını sağlar.
-    // documentSnapshot => dökümanın tamamı
-    print("documentSnapshot");
-    if (documentSnapshot.exists &&
-        documentSnapshot.data() != null &&
-        documentSnapshot.data()!["imageUrl"] != null) {
-      setState(() {
-        _imageUrl = documentSnapshot.data()!["imageUrl"];
-      });
-    } else {
-      // "imageUrl" alanı yok veya null ise, varsayılan bir değeri kullanabilir veya başka bir işlem yapabilirsiniz.
-      print("Belirtilen alan bulunamadı veya null.");
-    } */
   }
 
   void _upload(File? picketFileImage) async {
@@ -92,9 +72,7 @@ class _HomeState extends State<MessagesHomePageCalisma> {
 
     final document = firebaseFireStore.collection("users").doc(user!.uid);
 
-    await document.update({
-      'imageUrl': url
-    }); // document.update => verilen değeri ilgili dökümanda günceller!
+    await document.update({'imageUrl': url});
   }
 
   void _pickImage() async {
@@ -122,13 +100,9 @@ class _HomeState extends State<MessagesHomePageCalisma> {
       for (var userDoc in usersSnapshot.docs) {
         var email = userDoc['email'];
 
-        // Kullanıcı belgesinde 'username' alanı var mı kontrol et
         if (userDoc.data()!.containsKey('username')) {
           var username = userDoc['username'];
           usersData[email] = username;
-          /*       print("Priasdasdasdas");
-          print(username);
-          print(usersData); */
         } else {
           usersData[email] = 'Bilinmeyen Username';
         }
@@ -155,11 +129,11 @@ class _HomeState extends State<MessagesHomePageCalisma> {
 
   @override
   Widget build(BuildContext context) {
-    print("UserGlobal");
     print(userGlobal!.uid);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Firebase Application"),
+        title: const Text("Chat"),
+        backgroundColor: const Color.fromARGB(255, 93, 160, 214),
         actions: [
           IconButton(
             onPressed: () {
@@ -189,11 +163,9 @@ class _HomeState extends State<MessagesHomePageCalisma> {
                               width: double.infinity,
                               fit: BoxFit.contain,
                             ),
-                          //    if (_imageUrl.isNotEmpty && _pickedFile == null)
                           SizedBox(
                             height: 60,
                           ),
-
                           CircleAvatar(
                             radius: 40,
                             backgroundColor: Colors.grey,
@@ -252,7 +224,7 @@ class _HomeState extends State<MessagesHomePageCalisma> {
                 },
               );
             },
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.person),
           )
         ],
       ),

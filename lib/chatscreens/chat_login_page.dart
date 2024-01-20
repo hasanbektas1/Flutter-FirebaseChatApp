@@ -1,18 +1,18 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebasestudy/screens/home_page.dart';
-import 'package:firebasestudy/screens/sign_in_animate.dart';
+import 'package:firebasestudy/chatscreens/chat_page.dart';
+import 'package:firebasestudy/chatscreens/chat_signin_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class LoginPageAnimate extends StatefulWidget {
-  const LoginPageAnimate({Key? key}) : super(key: key);
+class ChatLoginPage extends StatefulWidget {
+  const ChatLoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginState createState() => _LoginState();
 }
 
-class _LoginState extends State<LoginPageAnimate> {
+class _LoginState extends State<ChatLoginPage> {
   late FirebaseAuth auth;
 
   late String userEmail, userPassword;
@@ -199,8 +199,6 @@ class _LoginState extends State<LoginPageAnimate> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(50),
                                 ),
-                                // decoration: BoxDecoration(
-                                // ),
                                 child: const Center(
                                   child: Text(
                                     "Login",
@@ -264,7 +262,7 @@ class _LoginState extends State<LoginPageAnimate> {
                                         Navigator.of(context).push(
                                             MaterialPageRoute(
                                                 builder: (ctx) =>
-                                                    SignInAnimate()));
+                                                    ChatSigninPage()));
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           const SnackBar(
@@ -344,9 +342,9 @@ class _LoginState extends State<LoginPageAnimate> {
   void loginAnonymous() async {
     try {
       var _userCredential = await auth.signInAnonymously();
-      print("Anonymous=${_userCredential.user!.uid}");
+      print(_userCredential);
       Navigator.of(context)
-          .push(MaterialPageRoute(builder: (ctx) => HomePage()));
+          .push(MaterialPageRoute(builder: (ctx) => ChatPage()));
     } on FirebaseAuthException catch (e) {
       print(e);
     }
@@ -356,25 +354,20 @@ class _LoginState extends State<LoginPageAnimate> {
     try {
       var _userCredential = await auth.signInWithEmailAndPassword(
           email: userEmail, password: userPassword);
-      print(_userCredential.toString());
-/*       Navigator.of(context)
-          .push(MaterialPageRoute(builder: (ctx) => HomePage())); */
+      print(_userCredential);
     } on FirebaseAuthException catch (ex) {
       print(ex.code);
       if (ex.code == "user-not-found") {
-        print("ser-not-found--------" + ex.code);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("user-not-found"),
           ),
         );
       } else if (ex.code == "wrong-password") {
-        print("wrong-password--------" + ex.code);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Şifre yanlış")),
         );
       } else if (ex.code == "invalid-email") {
-        print("wrong-password--------" + ex.code);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -382,7 +375,6 @@ class _LoginState extends State<LoginPageAnimate> {
           ),
         );
       } else if (ex.code == "invalid-password") {
-        print("invalid-password-------" + ex.code);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
