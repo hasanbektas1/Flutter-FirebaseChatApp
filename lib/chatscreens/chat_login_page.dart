@@ -304,7 +304,7 @@ class _LoginState extends State<ChatLoginPage> {
                                 color: Colors.blue,
                                 child: const Center(
                                   child: Text(
-                                    "Google ile Giriş",
+                                    "Sign in with Google",
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold),

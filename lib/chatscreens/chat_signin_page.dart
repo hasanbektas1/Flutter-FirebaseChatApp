@@ -122,7 +122,7 @@ class _SignOutAnimateState extends State<ChatSigninPage> {
                                             userName = newValue!;
                                           },
                                           decoration: const InputDecoration(
-                                              hintText: "İsim",
+                                              hintText: "Name",
                                               hintStyle:
                                                   TextStyle(color: Colors.grey),
                                               border: InputBorder.none),
